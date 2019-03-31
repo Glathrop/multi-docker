@@ -1,0 +1,30 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  # Build an image of the react development environment so we can run tests
+  # make certain to give the proper relative build context
+  -docker build -t glathrop/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  # exectue the tests. Create React App test mode does not ever exit so
+  # providing the --coverage flag forces an Exit Code 0 which is what
+  # Travis CI is looking for. 
+  - docker run glathrop/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t glathrop/multi-client ./client
+  - docker build -t glathrop/multi-nginx ./nginx
+  - docker build -t glathrop/multi-server ./server
+  - docker build -t glathrop/multi-worker ./worker
+  # Login to the Docker CLI
+  # Login is more complex because Travis cannot handle a prompt so full
+  # cli login version is used
+  # Uses encrypted ENV variables which are setup in Travis CI client
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take thes images and push them to Docker Hub
+  - docker push glathrop/multi-client
+  - docker push glathrop/multi-nginx
+  - docker push glathrop/multi-server
+  - docker push glathrop/multi-worker
