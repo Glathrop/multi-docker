@@ -5,7 +5,7 @@ services:
 before_install:
   # Build an image of the react development environment so we can run tests
   # make certain to give the proper relative build context
-  -docker build -t glathrop/react-test -f ./client/Dockerfile.dev ./client
+  - docker build -t glathrop/react-test -f ./client/Dockerfile.dev ./client
 
 script:
   # exectue the tests. Create React App test mode does not ever exit so
